@@ -10,15 +10,33 @@ import random
 #start pygame
 pygame.init()
 
+
+
+ #pokemon generating method, returns pokemon image and name   
+def _createPokemon_(dbValue):
+    sprite = pygame.image.load(pb.pokemon_sprite(dbValue).path)
+    return sprite, pb.pokemon(dbValue)
+
+
 #set display width and height
 display_width = 800
 display_height = 600
 
-#create characters
-bulbasaur = pygame.image.load(pb.pokemon_sprite(1).path)
-charmander = pygame.image.load(pb.pokemon_sprite(4).path)
-charizard = pygame.image.load(pb.pokemon_sprite(6).path)
+#store pokemon ID's for api database access
+pokemon_Id = [random.randrange(1, 152),random.randrange(1, 152),random.randrange(1, 152)]
 
+#create characters generation 1 pokemon
+poke1, pokename1 = _createPokemon_(pokemon_Id[0])
+poke2, pokename2 = _createPokemon_(pokemon_Id[1])
+poke3, pokename3 = _createPokemon_(pokemon_Id[2])
+ 
+print("poke1:",pokename1)
+print("poke2:",pokename2)
+print("poke3:",pokename3)
+
+#see ability print in console
+str = pb.ability(1)
+print(str)
 characters = []
 #set variable to contain the game display and change the title caption
 gameDisplay = pygame.display.set_mode((display_width, display_height))
@@ -44,9 +62,10 @@ def game_loop():
             
         #draw image to the background
         gameDisplay.blit(backgroundImg, (0,0))
-        gameDisplay.blit(bulbasaur, (display_width//2,display_height//2))
-        gameDisplay.blit(flipImage(charizard), (display_width//2 - 100,display_height//2))
-        gameDisplay.blit(charmander, (display_width//2 + 100,display_height//2))
+        gameDisplay.blit(poke1, (display_width//2,display_height//2))
+        gameDisplay.blit(flipImage(poke2), (display_width//2 - 100,display_height//2))
+        gameDisplay.blit(poke3, (display_width//2 + 100,display_height//2))
+        
         
         pygame.display.update()
 game_loop()

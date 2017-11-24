@@ -12,7 +12,7 @@ pygame.init()
 
 
 
- #pokemon generating method, returns pokemon image and name   
+#pokemon generating method, returns pokemon image and name   
 def _createPokemon_(dbValue):
     sprite = pygame.image.load(pb.pokemon_sprite(dbValue).path)
     return sprite, pb.pokemon(dbValue)

@@ -1,76 +1,397 @@
-#Brian Kilburn
-#Nov 19, 2017
-#Pokemon project prototype
-
 import pygame
+
 import pokebase as pb
-import time
-import random
 
-#start pygame
-pygame.init()
+import random, math, sys, time
 
+import pygame.gfxdraw
 
+import multiprocessing
+#exit the program
 
+def events():
+
+    for event in pygame.event.get():
+
+        if event.type == pygame.QUIT:
+
+            pygame.quit()
+
+            sys.exit()
+            
+#define colors            
+white = (255,255,255)
+black = (0,0,0)
+fightThread = multiprocessing.Process
 #pokemon generating method, returns pokemon image and name   
 def _createPokemon_(dbValue):
     sprite = pygame.image.load(pb.pokemon_sprite(dbValue).path)
     return sprite, pb.pokemon(dbValue)
 
+#flip function
+def flipImage(image):
+    flipped = pygame.transform.flip(image, True, False)
+    return flipped
+#called message_display
+def text_objects(text, font):
+    textSurface = font.render(text, True, black)
+    return textSurface, textSurface.get_rect()
 
-#set display width and height
-display_width = 800
-display_height = 600
+def message_display(text,cX,cY,fontSize):
+    largeText = pygame.font.Font('freesansbold.ttf', fontSize)#25
+    textSurf, textRect = text_objects(text, largeText)
+    textRect.center = (cX, cY) #screenWidth/2, screenHeight/2
+    SCREEN.blit(textSurf, textRect)
+    #we have to update the screen after adding something
+    pygame.display.update()
+    #pause the game for 2 seconds to display the message
+    time.sleep(2)
+   ##################################################################################################################  
+#fight scene function, for this to work there needs to be a user defined pokedex with id#, and random draw for enemies to battle
+def fightScene():
+    #define variable flags to track character entrance and key presses
+    slideEnemy = True
+    slidePlayer = True
+    poke2 = None
+    keyDown = False
+    #white screen to open the scene
+    pygame.draw.rect(SCREEN,white,[0,0,screenWidth,screenHeight])
+    #create fighting loop
+    while True:
+        #check key event for scene exiting(debug)
+        for event in pygame.event.get():
+                    #check for keys pressed down
+                    if event.type == pygame.KEYDOWN:
+                        #exit scene (debug)
+                        if event.key == pygame.K_LEFT:
+                            pygame.mixer.music.stop()                            
+                            return
+        #enemy entrance left to right                
+        if slideEnemy:
+            #load and play beginning ecounter music
+            pygame.mixer.music.load('BeginningofPokemonEncounter.wav')
+            pygame.mixer.music.play(1)
+            for x in range(screenWidth - 200):
+                SCREEN.blit(poke1, (x,100))
+                time.sleep(.003)
+                pygame.draw.rect(SCREEN,white,[x-25,100,20,200])
+                pygame.display.update()
+            SCREEN.fill(white)
+            SCREEN.blit(poke1, (x,100))
+            #encounter loop music
+            pygame.mixer.music.load('PokemonTrainerBattle.wav')
+            pygame.mixer.music.play(-1)   
+         
+            #give user a chance to select their available pokemon
+            while(not keyDown):
+                #wipe any previous messages in center of screen
+                pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 100])
+                message_display('Select Your pokemon[1- '+str(len(pokemon_Id))+']',screenWidth/2, screenHeight/2, 25)
+                for event in pygame.event.get():
+                    #check for keys pressed down
+                    if event.type == pygame.KEYDOWN:
+                        #check for the number key pressed and if there are enough pokemon in the players pokedex
+                        if event.key == pygame.K_LEFT:
+                            return
+                        elif event.key == pygame.K_1: 
+                            playerSelection = 0
+                        elif event.key == pygame.K_2 and len(pokemon_Id) > 1:
+                            playerSelection = 1
+                            
+                        elif event.key == pygame.K_3 and len(pokemon_Id) > 2: 
+                            playerSelection = 2
+                        elif event.key == pygame.K_4 and len(pokemon_Id) > 3:
+                            playerSelection = 3
+                            
+                        elif event.key == pygame.K_5 and len(pokemon_Id) > 4: 
+                            playerSelection = 4
+                        elif event.key == pygame.K_6 and len(pokemon_Id) > 5:
+                            playerSelection = 5
+                        else:
+                            #wipe previous messages, then print new message
+                            pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 100])
+                            message_display('Invalid selection',screenWidth/2, screenHeight/2, 25)
+                            playerSelection = 0
+                            continue
+                        #user has made their selection
+                        keyDown = True
+            slideEnemy = False
+        #player pokemon has not yet been selected
+        if(poke2 == None):
+            poke2, pokename2 = _createPokemon_(pokemon_Id[playerSelection])
+            pokename = str(pokename2)     
+        #enter player pokemon (right to left)
+        if slidePlayer:
+            
+            for x in range(screenWidth - 200):
+                SCREEN.blit(flipImage(poke2), ((screenWidth - x) - 25,400))
+                time.sleep(.003)
+                pygame.draw.rect(SCREEN,white,[(screenWidth + 100) - x,400,screenWidth + 125,500])
+                pygame.display.update()
+            #fill screen and draw new image at final position    
+            SCREEN.fill(white)
+            SCREEN.blit(flipImage(poke2), (screenWidth - x,400))
+            slidePlayer = False
+            
+        #draw the contestants final positions within the fight scene    
+        SCREEN.blit(poke1, (x,100))
+        SCREEN.blit(flipImage(poke2), (screenWidth - x,400))
+        
+        #draw stat boxes, names
+        message_display(str(pokename1), 200, 75, 25)
+        message_display(pokename, screenWidth - 200, screenHeight - 225, 25)
+        
+        #need healthbar, attack messaging, attack animations here, could write in while loop until a player dies or is captured
+        events()
+        #check for an exit condition
+        for event in pygame.event.get():
+                    #check for keys pressed down
+                    if event.type == pygame.KEYDOWN:
+                        #check for the number key pressed and if there are enough pokemon in the players pokedex
+                        if event.key == pygame.K_LEFT:
+                            pygame.mixer.music.stop()
+                            return               
+        pygame.display.update()
+    ##################################################################################################################   
+        
+      
+#defining the display surface
 
+screenWidth = 800
+
+screenHeight = 600
+
+######################
+
+halfScreenWidth = screenWidth/2
+
+halfScreenHeight = screenHeight/2
+
+#################################
+
+SCREEN_AREA = screenWidth * screenHeight
+
+########################################
+
+
+################character creation ############
 #store pokemon ID's for api database access
 pokemon_Id = [random.randrange(1, 152),random.randrange(1, 152),random.randrange(1, 152)]
 
 #create characters generation 1 pokemon
 poke1, pokename1 = _createPokemon_(pokemon_Id[0])
-poke2, pokename2 = _createPokemon_(pokemon_Id[1])
-poke3, pokename3 = _createPokemon_(pokemon_Id[2])
+#poke2, pokename2 = _createPokemon_(pokemon_Id[1])
+#poke3, pokename3 = _createPokemon_(pokemon_Id[2])
  
 print("poke1:",pokename1)
-print("poke2:",pokename2)
-print("poke3:",pokename3)
+#print("poke2:",pokename2)
+#print("poke3:",pokename3)
 
-#see ability print in console
-str = pb.ability(1)
-print(str)
-characters = []
-#set variable to contain the game display and change the title caption
-gameDisplay = pygame.display.set_mode((display_width, display_height))
-pygame.display.set_caption("Pokemon")
+#initialize the display
 
-#set the icon
+pygame.init()
 
-#flip function
-def flipImage(image):
-    flipped = pygame.transform.flip(image, True, False)
-    return flipped
-#retrieve the background image
-backgroundImg = pygame.image.load('DesertBackground.png')
-#create the game loop       
+CLOCK = pygame.time.Clock()
+
+SCREEN = pygame.display.set_mode((screenWidth,screenHeight))
+
+FPS = 500
+
+
+
+#Defining a list of colors in case they are needed
+
+BLACK = (0, 0, 0)
+
+WHITE = (255, 255, 255)
+
+RED = (255, 0, 0)
+
+BLUE = (0, 0, 255)
+
+GREEN = (0, 255, 0)
+
+#########################
+
 def game_loop():
+
+    #setting the background image and use convert because the pixels of the image may not be the 
+
+    #same as the background. Convert saves time
+
+    pokemonRoute = pygame.image.load('GreatMarsh.png').convert()
+
+    #finding out what the background width and background height are of the pokemon route
+
+    backgroundWidth, backgroundHeight = pokemonRoute.get_rect().size
+
+    #setting the width of the route will stop the player from being able to exit the bounds of the 
+
+    #pokemon route and will stop the background from scrolling out of bounds of the display surface
+
+    routeWidth = backgroundWidth #* 2
     
-    while True:
-        #check user activity
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
+    routePositionX = 0
+
+
+
+    scrollingRoutePositionX = halfScreenWidth
+
+
+
+    #this is a circle for now, but can be changed to the player later on
+
+    circleRadius = 25
+
+    circlePositionX = circleRadius
+
+
+
+    #difining the player positions
+
+    playerPositionX = circleRadius
+
+    playerPositionY = 345
+
+    #tells the stage what direction to move
+
+    playerVelocityX = 0
+    playerVelocityY = 0
+
+
+
+
+    #setting the game loop done variable to false initially
+
+    done = False
+
+    #main loop
+
+    while not done:
+
+        #calling the events function to see if the user has left the game
+
+        events()
+
+
+
+        #finding out what keys have been pressed
+
+        KEY_PRESSED = pygame.key.get_pressed()
+
+        #if the user presses the right key, then move in the positive x direction
+
+        if KEY_PRESSED[pygame.K_RIGHT]:
+
+            playerVelocityX = 1
+            fightScene()           
+        #if the user presses the left key, then move in the negative x direction
+
+        elif KEY_PRESSED[pygame.K_LEFT]:
+
+            playerVelocityX = -1
+        
+        #if the user presses the up key, then move subtract y position
+        elif KEY_PRESSED[pygame.K_UP]:
             
-        #draw image to the background
-        gameDisplay.blit(backgroundImg, (0,0))
-        gameDisplay.blit(poke1, (display_width//2,display_height//2))
-        gameDisplay.blit(flipImage(poke2), (display_width//2 - 100,display_height//2))
-        gameDisplay.blit(poke3, (display_width//2 + 100,display_height//2))
+            playerVelocityY = -1
         
+        #if the user presses the down key, then move add y position
+        elif KEY_PRESSED[pygame.K_DOWN]:
+            
+            playerVelocityY = 1
+        #if no key is pressed, then do not move and remain in the same position
+
+        else:
+
+            playerVelocityX = 0
+            playerVelocityY = 0
+
+        playerPositionY += playerVelocityY
+        playerPositionX += playerVelocityX
+
+        #if the playerposition in the x direction is greater than the width
+
+        #of the route minus the circle radius, then push the player to the 
+
+        #righthand edge of the screen
+
+        if playerPositionX > routeWidth - circleRadius:
+
+            playerPositionX = routeWidth - circleRadius
         
+        elif playerPositionY > screenHeight + 5:
+            playerPositionY =  screenHeight + 5
+        
+        elif playerPositionY < 50:
+            playerPositionY = 50
+        #if the playerposition in the x direction is less than the radius
+
+        #of the cirle, then push the player to the lefthand corner of the screen
+
+        elif playerPositionX < circleRadius:
+
+            playerPositionX = circleRadius
+
+        #if the player position in the x direction is less than the scrollingrouteposition
+
+        #then the ball will be located in the center and move with the screen
+
+        elif playerPositionX < scrollingRoutePositionX:
+
+            circlePositionX = playerPositionX
+            
+
+        #if the playerposition is greater than the routewidth minus
+
+        #the scrolling route position in the x direction, then the ball will
+
+        #not be in the center, and it will be located at route width minus
+
+        #the scrolling route position plus the width of the screen
+
+        elif playerPositionX > routeWidth - scrollingRoutePositionX:
+
+            circlePositionX = playerPositionX - routeWidth + screenWidth
+
+        #else the circle is in the middle of the screen
+
+        else:
+
+            circlePositionX = scrollingRoutePositionX
+
+            routePositionX += -playerVelocityX
+
+
+
+        relativePositionX = routePositionX % backgroundWidth
+
+        #print("Route Position" + str(routePositionX))
+
+        #print("Background Width" + str(backgroundWidth))
+
+        #print("Relative Position" + str(relativePositionX))
+
+        SCREEN.blit(pokemonRoute, (relativePositionX - backgroundWidth, 0))
+       
+        if relativePositionX < screenWidth:
+
+            SCREEN.blit(pokemonRoute, (relativePositionX, 0))
+            
+            
+        #blit characters
+        #SCREEN.blit(poke1, (screenWidth//2 + 20,screenHeight//2 + 20))
+        #SCREEN.blit(flipImage(poke2), (screenWidth//2 - 100,15))
+        #SCREEN.blit(poke3, (backgroundWidth//4 + 185,70))
+        pygame.draw.circle(SCREEN, WHITE, (playerPositionX, playerPositionY - circleRadius), circleRadius, 0)
+
+
+
         pygame.display.update()
-game_loop()
 
+        CLOCK.tick(FPS)
+
+        SCREEN.fill(BLACK)
     
-
-
+game_loop()
 

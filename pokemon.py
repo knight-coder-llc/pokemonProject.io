@@ -22,6 +22,9 @@ def events():
 #define colors            
 white = (255,255,255)
 black = (0,0,0)
+red = (255,0,0)
+green = (0,255,0)
+
 fightThread = multiprocessing.Process
 #pokemon generating method, returns pokemon image and name   
 def _createPokemon_(dbValue):
@@ -54,18 +57,22 @@ def fightScene():
     slidePlayer = True
     poke2 = None
     keyDown = False
+    
+    poke1hp = 100
+    poke2hp = 100
+    
+    enemy_damaged = 0
+    player_damaged = 0
+    
+    #track successful attacks after 3 success then special ability becomes available
+    playerAttackSuccess = 0
+    enemyAttackSuccess = 0
+    
     #white screen to open the scene
     pygame.draw.rect(SCREEN,white,[0,0,screenWidth,screenHeight])
     #create fighting loop
     while True:
-        #check key event for scene exiting(debug)
-        for event in pygame.event.get():
-                    #check for keys pressed down
-                    if event.type == pygame.KEYDOWN:
-                        #exit scene (debug)
-                        if event.key == pygame.K_LEFT:
-                            pygame.mixer.music.stop()                            
-                            return
+        
         #enemy entrance left to right                
         if slideEnemy:
             #load and play beginning ecounter music
@@ -141,16 +148,95 @@ def fightScene():
         message_display(str(pokename1), 200, 75, 25)
         message_display(pokename, screenWidth - 200, screenHeight - 225, 25)
         
-        #need healthbar, attack messaging, attack animations here, could write in while loop until a player dies or is captured
-        events()
-        #check for an exit condition
-        for event in pygame.event.get():
+        #roll for who attacks first
+        contestantTurn = 1 #random.randrange(1,3)
+        #attack game mechanics
+        while(poke1hp >= 0 and poke2hp >= 0):
+            #reset damage taken
+            damageTakenEnemy = 0
+            damageTakenplayer = 0
+          
+            #healthbar full (enemy)
+            pygame.draw.rect(SCREEN,red,(153,90,100,10))
+            #indicate damage to enemy
+            pygame.draw.rect(SCREEN,green,[153,90,enemy_damaged,10])
+            #healthbar full (player)
+            pygame.draw.rect(SCREEN,red,(3*screenWidth/4 - 50,3*screenHeight/4 - 100,100,10))
+            #indicate damage to player
+            pygame.draw.rect(SCREEN,green,[3*screenWidth/4 - 50,3*screenHeight/4 - 100,player_damaged,10])
+            ###############
+            #player
+            if contestantTurn == 1:
+                #check key event for end scene (debug)
+                for event in pygame.event.get():
                     #check for keys pressed down
                     if event.type == pygame.KEYDOWN:
-                        #check for the number key pressed and if there are enough pokemon in the players pokedex
+                        #exit scene (debug)
                         if event.key == pygame.K_LEFT:
-                            pygame.mixer.music.stop()
-                            return               
+                            pygame.mixer.music.stop()                            
+                            return
+                        #player move
+                        if event.key == pygame.K_1:
+                            message_display(str(pb.move(pokemon_Id[playerSelection])),screenWidth/2, screenHeight/2, 25)
+                            time.sleep(1)
+                            pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 100])
+                            enemy_damaged += 10
+                            damageTakenEnemy = 10
+                            playerAttackSuccess += 1
+                        #special ability    
+                        if event.key == pygame.K_2:
+                            if playerAttackSuccess == 3:
+                                message_display(str(pb.ability(pokemon_Id[playerSelection])),screenWidth/2, screenHeight/2, 25)
+                                time.sleep(1)
+                                pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 100])
+                                enemy_damaged += 20
+                                damageTakenplayer = 10
+                                #reset attack success
+                                playerAttackSuccess = 0
+                            else:
+                                message_display('cannont use special',screenWidth/2, screenHeight/2, 25)
+                                time.sleep(1)
+                                pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 100])
+                                continue
+                        #shake enemy player simulate an attack
+                        shift = 0
+                        for x in range(screenWidth - 200):
+                            if shift == 0:
+                                pygame.draw.rect(SCREEN,white,[screenWidth - 200,100,150,100])
+                                SCREEN.blit(poke1, (screenWidth - 200 - 5,100))
+                                time.sleep(.003)                       
+                                shift = 5
+                                pygame.display.update()
+                            else:
+                                pygame.draw.rect(SCREEN,white,[screenWidth - 200 + shift,100,150,100])
+                                SCREEN.blit(poke1, (screenWidth - 200 + shift,100))
+                                time.sleep(.003)                                
+                                shift = 0
+                                pygame.display.update()
+                        
+                        pygame.draw.rect(SCREEN,white,[screenWidth - 200 -5,100,120,100])
+                        pygame.display.update()
+                        SCREEN.blit(poke1, (screenWidth - 200,100))
+                            
+                poke1hp -= damageTakenEnemy
+                #contestantTurn = 2
+            
+            #computer AI
+            else:
+                poke2hp -= damageTakenplayer
+            
+            #healthbar when hit
+            pygame.display.update()
+            
+        #check key event for end scene (debug)
+        for event in pygame.event.get():
+            #check for keys pressed down
+            if event.type == pygame.KEYDOWN:
+                #exit scene (debug)
+                if event.key == pygame.K_LEFT:
+                    pygame.mixer.music.stop()                            
+                    return
+        #need healthbar, attack messaging, attack animations here, could write in while loop until a player dies or is captured
         pygame.display.update()
     ##################################################################################################################   
         

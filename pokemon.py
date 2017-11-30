@@ -67,9 +67,12 @@ def fightScene():
     #track successful attacks after 3 success then special ability becomes available
     playerAttackSuccess = 0
     enemyAttackSuccess = 0
-    
     #white screen to open the scene
     pygame.draw.rect(SCREEN,white,[0,0,screenWidth,screenHeight])
+    
+    #roll for who attacks first
+    contestantTurn = random.randrange(1,3)
+    
     #create fighting loop
     while True:
         
@@ -78,7 +81,7 @@ def fightScene():
             #load and play beginning ecounter music
             pygame.mixer.music.load('BeginningofPokemonEncounter.wav')
             pygame.mixer.music.play(1)
-            for x in range(screenWidth - 200):
+            for x in range(screenWidth - 125):
                 SCREEN.blit(poke1, (x,100))
                 time.sleep(.003)
                 pygame.draw.rect(SCREEN,white,[x-25,100,20,200])
@@ -92,7 +95,7 @@ def fightScene():
             #give user a chance to select their available pokemon
             while(not keyDown):
                 #wipe any previous messages in center of screen
-                pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 100])
+                pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 65])
                 message_display('Select Your pokemon[1- '+str(len(pokemon_Id))+']',screenWidth/2, screenHeight/2, 25)
                 for event in pygame.event.get():
                     #check for keys pressed down
@@ -116,7 +119,7 @@ def fightScene():
                             playerSelection = 5
                         else:
                             #wipe previous messages, then print new message
-                            pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 100])
+                            pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 65])
                             message_display('Invalid selection',screenWidth/2, screenHeight/2, 25)
                             playerSelection = 0
                             continue
@@ -131,25 +134,24 @@ def fightScene():
         if slidePlayer:
             
             for x in range(screenWidth - 200):
-                SCREEN.blit(flipImage(poke2), ((screenWidth - x) - 25,400))
+                SCREEN.blit(flipImage(poke2), ((screenWidth - x) - 100,375))
                 time.sleep(.003)
-                pygame.draw.rect(SCREEN,white,[(screenWidth + 100) - x,400,screenWidth + 125,500])
+                pygame.draw.rect(SCREEN,white,[(screenWidth + 100) - x,375,screenWidth,200])
                 pygame.display.update()
             #fill screen and draw new image at final position    
             SCREEN.fill(white)
-            SCREEN.blit(flipImage(poke2), (screenWidth - x,400))
+            SCREEN.blit(flipImage(poke2), (screenWidth - x - 100 ,375))
             slidePlayer = False
             
         #draw the contestants final positions within the fight scene    
         SCREEN.blit(poke1, (x,100))
-        SCREEN.blit(flipImage(poke2), (screenWidth - x,400))
+        SCREEN.blit(flipImage(poke2), (screenWidth - x - 100,375))
         
         #draw stat boxes, names
-        message_display(str(pokename1), 200, 75, 25)
-        message_display(pokename, screenWidth - 200, screenHeight - 225, 25)
+        message_display(str(pokename1), 150, 75, 25)
+        message_display(pokename, screenWidth - 125, screenHeight - 145, 25)
         
-        #roll for who attacks first
-        contestantTurn = 1 #random.randrange(1,3)
+        
         #attack game mechanics
         while(poke1hp >= 0 and poke2hp >= 0):
             #reset damage taken
@@ -157,13 +159,13 @@ def fightScene():
             damageTakenplayer = 0
           
             #healthbar full (enemy)
-            pygame.draw.rect(SCREEN,red,(153,90,100,10))
+            pygame.draw.rect(SCREEN,green,(100,90,100,10))
             #indicate damage to enemy
-            pygame.draw.rect(SCREEN,green,[153,90,enemy_damaged,10])
+            pygame.draw.rect(SCREEN,white,[100,90,enemy_damaged,10])
             #healthbar full (player)
-            pygame.draw.rect(SCREEN,red,(3*screenWidth/4 - 50,3*screenHeight/4 - 100,100,10))
+            pygame.draw.rect(SCREEN,green,(3*screenWidth/4 - 25,3*screenHeight/4 - 10,100,10))
             #indicate damage to player
-            pygame.draw.rect(SCREEN,green,[3*screenWidth/4 - 50,3*screenHeight/4 - 100,player_damaged,10])
+            pygame.draw.rect(SCREEN,white,[3*screenWidth/4 - 25,3*screenHeight/4 - 10,player_damaged,10])
             ###############
             #player
             if contestantTurn == 1:
@@ -177,12 +179,13 @@ def fightScene():
                             return
                         #player move
                         if event.key == pygame.K_1:
-                            message_display(str(pb.move(pokemon_Id[playerSelection])),screenWidth/2, screenHeight/2, 25)
+                            message_display(str(pokename) +' used '+str(pb.move(pokemon_Id[playerSelection])),screenWidth/2, screenHeight/2, 25)
                             time.sleep(1)
                             pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 100])
                             enemy_damaged += 10
                             damageTakenEnemy = 10
                             playerAttackSuccess += 1
+                            contestantTurn = 2
                         #special ability    
                         if event.key == pygame.K_2:
                             if playerAttackSuccess == 3:
@@ -190,11 +193,12 @@ def fightScene():
                                 time.sleep(1)
                                 pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 100])
                                 enemy_damaged += 20
-                                damageTakenplayer = 10
+                                damageTakenEnemy = 20
+                                contestantTurn = 2
                                 #reset attack success
                                 playerAttackSuccess = 0
                             else:
-                                message_display('cannont use special',screenWidth/2, screenHeight/2, 25)
+                                message_display('cannot use special',screenWidth/2, screenHeight/2, 25)
                                 time.sleep(1)
                                 pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 100])
                                 continue
@@ -218,13 +222,52 @@ def fightScene():
                         pygame.display.update()
                         SCREEN.blit(poke1, (screenWidth - 200,100))
                             
-                poke1hp -= damageTakenEnemy
-                #contestantTurn = 2
+                    poke1hp -= damageTakenEnemy
+                    
             
             #computer AI
             else:
-                poke2hp -= damageTakenplayer
-            
+                
+                if enemyAttackSuccess == 3:
+                    message_display(str(pb.ability(pokemon_Id[0])),screenWidth/2, screenHeight/2, 25)
+                    time.sleep(1)
+                    pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 100])
+                    player_damaged += 20
+                    damageTakenplayer = 20
+                    contestantTurn = 1
+                    enemyAttackSuccess = 0
+                else:
+                    message_display(str(pb.move(pokemon_Id[0])),screenWidth/2, screenHeight/2, 25)
+                    time.sleep(1)
+                    pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 100])
+                    player_damaged += 10
+                    damageTakenplayer = 10
+                    contestantTurn = 1
+                    enemyAttackSuccess += 1
+                
+                #shake enemy player simulate an attack
+                shift = 0
+                for x in range(screenWidth - 200):
+                    if shift == 0:
+                        pygame.draw.rect(SCREEN,white,[screenWidth - (screenWidth - 100) - 5,375,150,100])
+                        SCREEN.blit(flipImage(poke2), (screenWidth - (screenWidth - 100) - 5,375))
+                        time.sleep(.003)                       
+                        shift = 5
+                        pygame.display.update()
+                    else:
+                        pygame.draw.rect(SCREEN,white,[screenWidth - (screenWidth - 100) + shift,375,150,100])
+                        SCREEN.blit(flipImage(poke2), (screenWidth - (screenWidth - 100) + shift,375))
+                        time.sleep(.003)                                
+                        shift = 0
+                        pygame.display.update()
+                        
+                poke2hp -= damageTakenplayer        
+                
+                
+                pygame.draw.rect(SCREEN,white,[screenWidth - (screenWidth - 100),375,150,100])
+                pygame.display.update()
+                SCREEN.blit(flipImage(poke2), (screenWidth - (screenWidth - 100),375))
+                           
             #healthbar when hit
             pygame.display.update()
             
@@ -243,9 +286,9 @@ def fightScene():
       
 #defining the display surface
 
-screenWidth = 800
+screenWidth = 640#800 #640
 
-screenHeight = 600
+screenHeight = 480#600 #480
 
 ######################
 

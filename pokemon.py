@@ -35,7 +35,7 @@ def _createPokemon_(dbValue):
 def flipImage(image):
     flipped = pygame.transform.flip(image, True, False)
     return flipped
-#called message_display
+##called message_display
 def text_objects(text, font):
     textSurface = font.render(text, True, black)
     return textSurface, textSurface.get_rect()

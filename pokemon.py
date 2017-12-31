@@ -1,4 +1,4 @@
-import math, random, sys, time
+import random, sys, time
 import pygame
 import pokebase as pb
 
@@ -15,10 +15,10 @@ def unpause():
     game_loop()
 
 def paused():
-    pauseText = pygame.font.SysFont('freesansbold.ttf', 30)
+    pauseText = pygame.font.SysFont('Pixeled.ttf', 30)
     textSurf, textRect = text_objects("Paused", pauseText)
     textRect.center = (HALF_WIDTH, HALF_HEIGHT)
-    bg = pygame.image.load('BackgroundFinal.png').convert()
+    bg = pygame.image.load('bg.png').convert()
     SCREEN.blit(bg, (0, 0))
     #pygame.draw.rect(SCREEN, white, [screenWidth-60, 0, screenWidth, screenHeight-100])
     SCREEN.blit(textSurf, textRect)
@@ -34,6 +34,15 @@ def paused():
         button("Trainer", 550, 150, 100, 50, white, light_gray, unpause)
         button("Option", 550, 200, 100, 50, white, light_gray, unpause)
         button("QUIT", 550, 250, 100, 50, white, light_gray, quit_game)
+        cycle = [0, 2, 4]
+        f = Fountain('Fountain.png', 2, 3)
+        for i in cycle:
+            clock.tick(5)
+            #f = Fountain('Fountain.png', 2, 3)
+            f.draw(SCREEN, i, screenWidth/2, screenHeight-123, 0)
+            pygame.display.update()
+            pygame.display.flip()
+        i += 2
         #pauseScreen = pygame.draw.Surface.rect(SCREEN, white, (0, 0, screenWidth, screenHeight), 0)
         #SCREEN.blit(pauseScreen, (490, 0))
         pygame.display.update()
@@ -69,13 +78,14 @@ def _createPokemon_(dbValue):
 def flipImage(image):
     flipped = pygame.transform.flip(image, True, False)
     return flipped
+
 #called message_display
 def text_objects(text, font):
     textSurface = font.render(text, True, black)
     return textSurface, textSurface.get_rect()
 
 def message_display(text,cX,cY,fontSize):
-    largeText = pygame.font.Font('freesansbold.ttf', fontSize)#25
+    largeText = pygame.font.SysFont('Pixeled.ttf', fontSize)#25
     textSurf, textRect = text_objects(text, largeText)
     textRect.center = (cX, cY) #screenWidth/2, screenHeight/2
     SCREEN.blit(textSurf, textRect)
@@ -88,7 +98,6 @@ def message_display(text,cX,cY,fontSize):
 #    SCREEN.blit(pokemon, (360, 360))
 
 def battleWinner(pokename1, pokename2, health1, health2, enemy_damaged, player_damaged):
-    clock.tick(15)
     #healthbar full (enemy)
     pygame.draw.rect(SCREEN,green,(100,90,100,10))
     #indicate damage to enemy
@@ -98,14 +107,12 @@ def battleWinner(pokename1, pokename2, health1, health2, enemy_damaged, player_d
     #indicate damage to player
     pygame.draw.rect(SCREEN,white,[3*screenWidth/4 - 25,3*screenHeight/4 - 10,player_damaged,10])
     
-    if health1 == 0:    
+    if health1 == 0:
         message_display(pokename2 + ' Fainted!',screenWidth/2, screenHeight/2, 25)
-        time.sleep(1)
         pygame.mixer.music.stop()
         game_loop()
     elif health2 == 0:
         message_display(pokename1 + ' Fainted!',screenWidth/2, screenHeight/2, 25)
-        time.sleep(1)
         pygame.mixer.music.stop()
         game_loop()
     else:
@@ -113,6 +120,7 @@ def battleWinner(pokename1, pokename2, health1, health2, enemy_damaged, player_d
  ##################################################################################################################  
 #fight scene function, for this to work there needs to be a user defined pokedex with id#, and random draw for enemies to battle
 def fightScene(poke1, num):
+    spin_spin()
     #define variable flags to track character entrance and key presses
     slideEnemy = True
     slidePlayer = True
@@ -140,10 +148,6 @@ def fightScene(poke1, num):
         #enemy entrance left to right                
         if slideEnemy:
             clock.tick(60)
-            #load and play beginning ecounter music
-            pygame.mixer.music.load('BeginningofPokemonEncounter.wav')
-            pygame.mixer.music.play(1)
-            time.sleep(2.5)
             #encounter loop music 
             pygame.mixer.music.load('PokemonTrainerBattle.wav')
             pygame.mixer.music.play(-1)
@@ -158,39 +162,38 @@ def fightScene(poke1, num):
  
          
         #give user a chance to select their available pokemon
-            while(not keyDown):
-                clock.tick(15)
-                #wipe any previous messages in center of screen
-                pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 65])
-                message_display('Select Your pokemon[1- '+str(len(pokemon_Id))+']',screenWidth/2, screenHeight/2, 25)
-                for event in pygame.event.get():
-                    #check for keys pressed down
-                    if event.type == pygame.KEYDOWN:
-                        if event.type == pygame.QUIT:
-                            pygame.quit()
-                            quit()
-                        #check for the number key pressed and if there are enough pokemon in the players pokedex   
-                        elif event.key == pygame.K_1: 
-                            playerSelection = 0
-                        elif event.key == pygame.K_2 and len(pokemon_Id) > 1:
-                            playerSelection = 1
-                        elif event.key == pygame.K_3 and len(pokemon_Id) > 2: 
-                            playerSelection = 2
-                        elif event.key == pygame.K_4 and len(pokemon_Id) > 3:
-                            playerSelection = 3
-
-                        elif event.key == pygame.K_5 and len(pokemon_Id) > 4: 
-                            playerSelection = 4
-                        elif event.key == pygame.K_6 and len(pokemon_Id) > 5:
-                            playerSelection = 5
-                        else:
-                            #wipe previous messages, then print new message
-                            pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 65])
-                            message_display('Invalid selection',screenWidth/2, screenHeight/2, 25)
-                            playerSelection = 0
-                            continue
-                        #user has made their selection
-                        keyDown = True
+        while(not keyDown):
+            clock.tick(15)
+            #wipe any previous messages in center of screen
+            pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 65])
+            message_display('Select Your Pokemon[1- '+str(len(pokemon_Id))+']',screenWidth/2, screenHeight/2, 25)
+            for event in pygame.event.get():
+                #check for keys pressed down
+                if event.type == pygame.KEYDOWN:
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        quit()
+                    #check for the number key pressed and if there are enough pokemon in the players pokedex   
+                    elif event.key == pygame.K_1: 
+                        playerSelection = 0
+                    elif event.key == pygame.K_2 and len(pokemon_Id) > 1:
+                        playerSelection = 1
+                    elif event.key == pygame.K_3 and len(pokemon_Id) > 2: 
+                        playerSelection = 2
+                    elif event.key == pygame.K_4 and len(pokemon_Id) > 3:
+                        playerSelection = 3
+                    elif event.key == pygame.K_5 and len(pokemon_Id) > 4: 
+                        playerSelection = 4
+                    elif event.key == pygame.K_6 and len(pokemon_Id) > 5:
+                        playerSelection = 5
+                    else:
+                        #wipe previous messages, then print new message
+                        pygame.draw.rect(SCREEN,white,[0, screenHeight/2-50,screenWidth, 65])
+                        message_display('Invalid selection',screenWidth/2, screenHeight/2, 25)
+                        playerSelection = 0
+                        continue
+                    #user has made their selection
+                    keyDown = True
             slideEnemy = False
         #player pokemon has not yet been selected
         if(poke2 == None):
@@ -250,7 +253,7 @@ def fightScene(poke1, num):
                         #exit scene (debug)
                         if event.type == pygame.QUIT:
                             pygame.quit()
-                            quit()
+                            sys.exit()
                         #player move
                         if event.key == pygame.K_1:
                             message_display(str(pokename) +' used '+str(pb.move(pokemon_Id[playerSelection])),screenWidth/2, screenHeight/2, 25)
@@ -346,7 +349,17 @@ def fightScene(poke1, num):
                            
             #healthbar when hit
             pygame.display.update()
-
+            
+        #check key event for end scene (debug)
+        #for event in pygame.event.get():
+            
+            #check for keys pressed down
+            #if event.type == pygame.KEYDOWN:
+                #exit scene (debug)
+                #if event.key == pygame.K_LEFT:
+                    #pygame.mixer.music.stop()                            
+                    #return
+        
         #need healthbar, attack messaging, attack animations here, could write in while loop until a player dies or is captured
         pygame.display.update()
     ##################################################################################################################
@@ -380,7 +393,7 @@ def button(msg, x, y, w, h, ic, ac, action=None):
     else:
         pygame.draw.rect(SCREEN, ic, (x, y, w, h))
 
-    smallText = pygame.font.SysFont('freesansbold.ttf', 20)
+    smallText = pygame.font.SysFont('Pixeled.ttf', 20)
     TextSurf, TextRect = text_objects(msg, smallText)
     TextRect.center = ( (x+(w/2)), (y+(h/2)) )
     SCREEN.blit(TextSurf, TextRect)
@@ -390,23 +403,39 @@ def game_intro():
     intro = True
 
     while intro:
+        fountainIndex = 0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                quit()
+                sys.exit()
     
         SCREEN.fill(white)
-        largeText = pygame.font.SysFont('freesansbold.ttf', 115)
+        largeText = pygame.font.SysFont('Pixeled.ttf', 115)
         TextSurf, TextRect = text_objects("Pokemon", largeText)
         TextRect.center = (HALF_WIDTH, HALF_HEIGHT-200)
         SCREEN.blit(TextSurf, TextRect)
-
-        button('Continue', screenWidth-100, 100, 100, 50, green, bright_green, game_loop)
-        button('New Game', screenWidth-100, 150, 100, 50, green, bright_green, game_loop)
-        button('QUIT', screenWidth-100, 200, 100, 50, red, bright_red, quit_game)
-
-        pygame.display.update()
-        clock.tick(15)
+        SCREEN.blit(background, (0, 0))
+        #for i in cycle:
+        #    f = Fountain('Fountain.png', 2, 3)
+        #    f.draw(SCREEN, i, screenWidth/2, screenHeight-123, 0)
+        #    pygame.display.update()
+        #    #pygame.display.flip()
+        #    i += 1
+#
+        button('Continue', 0, 0, 100, 50, green, bright_green, game_loop)
+        button('New Game', (screenWidth/2)-50, 0, 100, 50, green, bright_green, game_loop)
+        button('QUIT', screenWidth-100, 0, 100, 50, red, bright_red, quit_game)
+        #pygame.display.update()
+        #clock.tick(3)
+        cycle = [0, 2, 4]
+        f = Fountain('Fountain.png', 2, 3)
+        for i in cycle:
+            clock.tick(5)
+            #f = Fountain('Fountain.png', 2, 3)
+            f.draw(SCREEN, i, screenWidth/2, screenHeight-123, 0)
+            pygame.display.update()
+            pygame.display.flip()
+        i += 2
 
 #grass rgb = 36634e
 #define the display surface
@@ -428,7 +457,7 @@ pokemon_Id = [random.randrange(1, 152),random.randrange(1, 152),random.randrange
 pygame.init()
 clock = pygame.time.Clock()
 SCREEN = pygame.display.set_mode((screenWidth, screenHeight))
-background = pygame.image.load('BackgroundFinal.png')
+background = pygame.image.load('bg.png')
 pygame.display.set_caption("Pokemon CSC170")
 FPS = 5
 ###################################################################################
@@ -446,8 +475,34 @@ bright_green = (0, 255, 0)
 class Spritesheet:
     #telling the sprite sheet class the filename of the sprite sheet, the number of 
     #columns in the spritesheet, and the number of rows in the spritesheet
+    def __init__(self, filename):
+        self.image = pygame.image.load(filename) #loads in full sprite sheet as .image() 
+        self.w_r = [(0,198,66,66),(66,198,66,66),(132,198,66,66),(66,198,66,66)]
+        self.w_l = [(0,132,66,66),(66,132,66,66),(132,132,66,66),(66,132,66,66)]
+        self.w_up = [(0,0,66,66),(66,0,66,66),(132,0,66,66),(66,0,66,66),]
+        self.w_down = [(0,66,66,66),(66,66,66,66),(132,66,66,66),(66,66,66,66)]
+  
+
+    def walk_r(self, x, y, frame):
+        SCREEN.blit(pygame.transform.scale2x(self.image),(x,y),self.w_r[frame])
+        
+    def walk_r(self, x, y, frame):
+        SCREEN.blit(pygame.transform.scale2x(self.image),(x,y),self.w_r[frame])
+        
+    def walk_l(self, x, y, frame):
+        SCREEN.blit(pygame.transform.scale2x(self.image),(x,y),self.w_l[frame])    
+    
+    def walk_up(self, x, y, frame):
+        SCREEN.blit(pygame.transform.scale2x(self.image),(x,y),self.w_up[frame])
+    
+    def walk_down(self, x, y, frame):
+        SCREEN.blit(pygame.transform.scale2x(self.image),(x,y),self.w_down[frame])
+
+class Fountain:
+    #telling the sprite sheet class the filename of the sprite sheet, the number of 
+    #columns in the spritesheet, and the number of rows in the spritesheet
     def __init__(self, filename, columns, rows):
-        self.sheet = pygame.image.load(filename)#.convert_alpha()
+        self.sheet = pygame.image.load(filename).convert_alpha()
 
         self.columns = columns
         self.rows = rows
@@ -474,74 +529,112 @@ class Spritesheet:
 
 def quit_game():
     pygame.quit()
-    quit()
+    sys.exit()
+    
+def spin_spin():
+    pygame.mixer.music.load('BeginningofPokemonEncounter.wav')
+    pygame.mixer.music.play(1)
+    for x_across in range(0,641,128):
+        for swirl_x in range(0,480):
+            SCREEN.fill(black,(0,0,x_across,swirl_x))
+            pygame.display.update()
+    time.sleep(1.5)
+    
 #main loop
+
 pause = False
 def game_loop():
     global pause
     #spritesheet with the name of the file, the columns, and the rows
-    s = Spritesheet("SpriteSheet2.png", 3, 4)
+    trainer_ = Spritesheet("sprites.png") #I renamed the spritesheet object trainer
 
-    #this will centralize the image over the x and y coordinates
-    CENTER_HANDLE = 4
+    x_change = 0
+    y_change = 0
 
-    playerVelocityX = 0
-    playerVelocityY = 0
-
-    playerx = 300
-    playery = 300
-    index = 0
+    x = 380 #this places player sprite in front of door nicely
+    y = 240
+    last_move = "none"
+    
+    trainer_.walk_down(x,y,1)
+    SCREEN.blit(pygame.transform.scale2x(background), (-30-x, 0-y))
+    
+    
+    frame = 0
     while True:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if (event.type == pygame.QUIT) or (event.type == KEYDOWN and event.key == K_ESCAPE): #<--condition allows the x button or the esc key to close game
                 pygame.quit()
-                quit()
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP]:
-            if playery > screenHeight - 160:
-                playerVelocityY = -40
-                index = 6
-                playery += playerVelocityY
-        elif keys[pygame.K_DOWN]:
-            if playery < screenHeight - 80:
-                playerVelocityY = 40
-                index = 0
-                playery += playerVelocityY
-        elif keys[pygame.K_LEFT]:
-            if 80 < playerx:
-                playerVelocityX = -40
-                index = 9
-                playerx += playerVelocityX
-        elif keys[pygame.K_RIGHT]:
-            if screenWidth-80 > playerx:
-                playerVelocityX = 40
-                index = 3
-                playerx += playerVelocityX
-        elif keys[pygame.K_p]:
-            pause = True
-            paused()
-        else:
-            #print('No movement')
-            playerVelocityX = 0
-            playerVelocityY = 0
+                sys.exit()
+            
+            if (event.type == pygame.KEYDOWN): #<-- this is the same thing as "get pressed"
+                if event.key == pygame.K_LEFT:
+                    x_change = -15
+                    last_move = "left" #allows correct idling frame
+                if event.key == pygame.K_RIGHT:
+                    x_change = 15
+                    last_move = "left"   
+                if event.key == pygame.K_UP:
+                    y_change = -15
+                    last_move = "up" 
+                if event.key == pygame.K_DOWN:
+                    y_change = 15
+                    last_move = "down"   
+                if event.key == pygame.K_p:
+                    pause = True
+                    paused()
+                if event.key == pygame.K_SPACE:
+                    spin_spin()
+                    
+            if (event.type == pygame.KEYUP): #<--it's better to detect key up than always search for key down
+                y_change = 0
+                x_change = 0
+                
+        #THIS baby here checks for proper idling frames with the use of "last_move"
+        #edge detection is hardcoded in, sorry
+        if (x>= 640-66) or (x<=66) or (y >= 480-66) or (y <= 240):
+            if (x <= 0 and x_change < 0) or (x >= 640-66 and x_change > 0):
+                x_change = 0
+            elif (y <= 240 and y_change < 0) or (y >= 480-66 and y_change > 0):
+                y_change = 0
+                
+        x += x_change
+        y += y_change
+        
         #check for pokemon after buttons have or have not been pressed
-        checkForPokemon()
+        #put parameters here later
+        if x>50 and y>300:
+            checkForPokemon()        
+        
         #blitting the background after all events have been accounted for, but
-        #before the player is able to move around
-        SCREEN.blit(background, (0, 0))
-        #blit the sprite on the screen, increment the index value by 1 on each cycle of the main loop, the mod
-        #operator will ensure that the index does not exceed the max index value in the sprite sheet and then blit 
-        #the image on the center of the display surface
-        #checkCoordinates(playerx, playery, playerVelocityX, playerVelocityY)
-        s.draw(SCREEN, (index % s.totalCellCount), playerx, playery, CENTER_HANDLE)
-        
-        
-        #move to the next index value
-        #index += 1
+        #before the player is able to move around        
+        SCREEN.blit(pygame.transform.scale2x(background), (-30-x, 0-y))        
 
-        #pygame.draw.circle(screen, WHITE, (HALF_WIDTH, HALF_HEIGHT), 2, 0)
+        if(x_change>0):
+            trainer_.walk_r(x,y,frame) #walks RIGHT
+        elif (x_change<0):
+            trainer_.walk_l(x,y,frame) #walks LEFT
+        elif(y_change<0):    
+            trainer_.walk_up(x,y,frame)
+        elif(y_change>0):
+            trainer_.walk_down(x,y,frame)
+        else: #means x=0 and y=0, so this is the idling condition
+            if last_move == "left":
+                trainer_.walk_l(x,y,1)
+            elif last_move == "right":
+                trainer_.walk_r(x,y,1)
+            elif last_move == "up":
+                trainer_.walk_up(x,y,1)
+            elif last_move == "down":
+                trainer_.walk_down(x,y,1)
+            
+        frame = frame+1
+        #loop below prevents spritesheet object from pulling out of reach
+        #trainer's most complex aboveworld animation shouldn't be more than 3 frame
+        if frame>3:
+            frame = 0
+            
         pygame.display.update()
         clock.tick(FPS)
-        SCREEN.fill(black)
+        
 game_intro()
 game_loop()
